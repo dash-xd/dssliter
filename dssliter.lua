@@ -28,6 +28,11 @@ local function DSSLite()
 		print("use DSSLite:ReleaseStore() before running DSSLite:InitStore(key) again")
 		return false
 	end
+	
+	function dsmod.SetStore(datastore)
+		Datastore = datastore;
+		return;
+	end
 
 	function dsmod.GetStore()
 		return DataStore
@@ -44,7 +49,6 @@ local function DSSLite()
 
 	-------------------------------------------------------
 	function dsmod.GetData(key)
-		print("getting: " .. tostring(key))
 		local success, result = pcall(function()
 			return DataStore:GetAsync(key)
 		end)
