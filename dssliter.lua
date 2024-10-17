@@ -44,6 +44,7 @@ local function DSSLite()
 
 	-------------------------------------------------------
 	function dsmod.GetData(key)
+		print("getting: " .. tostring(key))
 		local success, result = pcall(function()
 			return DataStore:GetAsync(key)
 		end)
@@ -63,12 +64,12 @@ local function DSSLite()
 	end
 
 	function dsmod.LoadIntoCache(key)
-		print("loading data into read only cache")
+		print("loading data into cache")
 		entryKey = key
-		local success
+		local success = nil;
 		success, cache = dsmod.GetData(key)
 		print("did system load cache: " .. tostring(success))
-		return success
+		return success;
 	end
 
 	function dsmod.SaveData(key, data)
@@ -103,6 +104,13 @@ local function DSSLite()
 	-------------------------------------------------------------
 
 	function dsmod.UpdateCache(newData, ...) -- variadic args are any number of nested keys
+		-- If cache is not a table, directly update it
+		if type(cache) ~= "table" then
+			cache = newData
+			print("Cache updated directly to: " .. tostring(newData))
+			return true
+		end
+
 		local function update(t, newData, ...)
 			print("searching for key " .. (...) .. " in: ")
 			print(t)
@@ -123,8 +131,11 @@ local function DSSLite()
 			end
 			return false
 		end
+
 		return update(cache, newData, ...)
 	end
 
 	return dsmod
 end
+
+return DSSLite
