@@ -1,15 +1,22 @@
 local HttpService = game:GetService("HttpService")
 local DataStoreService = game:GetService("DataStoreService")
 
--- DataStorServiceeLite (DSSLite)
+-- DataStoreServiceLite (DSSLite)
 local function DSSLite()
 	local dsmod = {}
-	local DataStore = nil;
-	local cache = nil;
+	local DataStore = nil
+	local cache = nil
 	local entryKey = nil
 
 	function dsmod.CopyTable(t)
-		return HttpService:JSONDecode(HttpService:JSONEncode(t))
+		local success, result = pcall(function()
+			return HttpService:JSONDecode(HttpService:JSONEncode(t))
+		end)
+		if not success then
+			warn("Failed to deep copy table: " .. tostring(result))
+			return nil  -- Return nil if the copy fails
+		end
+		return result
 	end
 
 	function dsmod.InitStore(key)
@@ -23,7 +30,7 @@ local function DSSLite()
 	end
 
 	function dsmod.GetStore()
-		return DataStore;
+		return DataStore
 	end
 
 	function dsmod.ReleaseStore()
@@ -32,7 +39,7 @@ local function DSSLite()
 			return true
 		end
 		print("There is no DataStore to release")
-		return false;
+		return false
 	end
 
 	-------------------------------------------------------
@@ -47,18 +54,23 @@ local function DSSLite()
 	end
 
 	function dsmod:GetCacheCopy()
-		return self.CopyTable(cache);
+		-- Return the value directly if it's not a table or a reference
+		if type(cache) ~= "table" then
+			return cache
+		end
+		-- If it is a table, perform a deep copy
+		return self.CopyTable(cache)
 	end
 
 	function dsmod.LoadIntoCache(key)
 		print("loading data into read only cache")
-		entryKey = key;
-		local success;
+		entryKey = key
+		local success
 		success, cache = dsmod.GetData(key)
 		print("did system load cache: " .. tostring(success))
 		return success
 	end
-	
+
 	function dsmod.SaveData(key, data)
 		local success, result = pcall(function()
 			DataStore:SetAsync(key, data)
@@ -70,9 +82,9 @@ local function DSSLite()
 	end
 
 	function dsmod.ReleaseCache()
-		cache = nil;
-		entryKey = nil;
-		return true;
+		cache = nil
+		entryKey = nil
+		return true
 	end
 
 	function dsmod:SaveCache()
@@ -80,13 +92,13 @@ local function DSSLite()
 	end
 
 	function dsmod:SaveAndReleaseCache()
-		self.SaveCache();
-		self.ReleaseCache();
+		self:SaveCache()
+		self:ReleaseCache()
 	end
 
 	function dsmod:SaveCacheAndReleaseFull()
-		self.SaveAndReleaseCache();
-		self.ReleaseStore();
+		self:SaveAndReleaseCache()
+		self:ReleaseStore()
 	end
 	-------------------------------------------------------------
 
@@ -98,24 +110,21 @@ local function DSSLite()
 				if t[(...)] then
 					print((...) .. " is found in cache")
 					print(select('#', ...))
-					if select('#', ...) == 0 then
+					if select('#', ...) == 1 then
 						print("reached end, updating value for key: " .. ((...)))
-						t[(...)] = newData;
-						return true;
+						t[(...)] = newData
+						return true
 					else
 						return update(t[(...)], newData, select(2, ...))
 					end
 				else
-					return false;
+					return false
 				end
 			end
-			return false;
+			return false
 		end
 		return update(cache, newData, ...)
 	end
+
 	return dsmod
 end
-
-return DSSLite
-
-
