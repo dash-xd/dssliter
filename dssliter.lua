@@ -123,6 +123,10 @@ local function DSSLite()
 	function dsmod:SaveCache()
 		return self:SaveData(entryKey, cache)
 	end
+	
+	function dsmod:SaveCacheToEntry(key)
+		return self:SaveData(key, cache)
+	end
 
 	function dsmod:SaveAndReleaseCache()
 		self:SaveCache()
