@@ -1,6 +1,34 @@
 local HttpService = game:GetService("HttpService")
 local DataStoreService = game:GetService("DataStoreService")
 
+local StoreLazyLoader = {}
+local function initLazyLoader()
+	local stores = {};
+	function StoreLazyLoader:Add(key, store)
+		if not store then
+			store = DataStoreService:GetDataStore(key)
+		end
+		stores[key] = store
+		print("store lazy loaded ... current stores: ")
+		print(stores);
+		return stores[key]
+	end
+	
+	function StoreLazyLoader:Get(key)
+		return stores[key]
+	end
+
+	function StoreLazyLoader:Remove(key)
+		stores[key] = nil
+	end
+	
+	function StoreLazyLoader:RemoveAll(key)
+		stores = {}
+	end
+end
+
+initLazyLoader();
+
 -- DataStoreServiceLite (DSSLite)
 local function DSSLite()
 	local dsmod = {}
@@ -22,15 +50,15 @@ local function DSSLite()
 	function dsmod.InitStore(key)
 		print("Initializing store: " .. key)
 		if not DataStore then
-			DataStore = DataStoreService:GetDataStore(key)
+			DataStore = StoreLazyLoader:Add(key);
 			return true
 		end
 		print("use DSSLite:ReleaseStore() before running DSSLite:InitStore(key) again")
 		return false
 	end
 	
-	function dsmod.SetStore(datastore)
-		Datastore = datastore;
+	function dsmod.SetStore(datastore) -- does not use lazyloader
+		DataStore = datastore;
 		return;
 	end
 
@@ -137,6 +165,12 @@ local function DSSLite()
 		end
 
 		return update(cache, newData, ...)
+	end
+	
+	-------------------------------------------------------------
+
+	function dsmod.GetCachedStore(key)
+		return StoreLazyLoader:Get(key)
 	end
 
 	return dsmod
