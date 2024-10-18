@@ -1,6 +1,7 @@
 local HttpService = game:GetService("HttpService")
 local DataStoreService = game:GetService("DataStoreService")
 
+-- StoreLazyLoader
 local StoreLazyLoader = {}
 local function initLazyLoader()
 	local stores = {};
@@ -26,7 +27,6 @@ local function initLazyLoader()
 		stores = {}
 	end
 end
-
 initLazyLoader();
 
 -- DataStoreServiceLite (DSSLite)
