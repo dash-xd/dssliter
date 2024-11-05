@@ -1,11 +1,26 @@
 local HttpService = game:GetService("HttpService")
 local DataStoreService = game:GetService("DataStoreService")
+local _lru = require(script.Parent:WaitForChild("_lru"))
 
--- StoreLazyLoader
+-- Helper function to recursively deep copy a table
+local function deepCopy(original)
+	local copy = {}
+	for key, value in pairs(original) do
+		if type(value) == "table" then
+			copy[key] = deepCopy(value)  -- Recursively copy if it's a table
+		else
+			copy[key] = value  -- Directly assign if it's not a table
+		end
+	end
+	return copy
+end
+
 local StoreLazyLoader = {}
-local function initLazyLoader()
+function StoreLazyLoader:init()
 	local stores = {};
+
 	function StoreLazyLoader:Add(key, store)
+		key = tostring(key)
 		if not store then
 			store = DataStoreService:GetDataStore(key)
 		end
@@ -14,20 +29,35 @@ local function initLazyLoader()
 		print(stores);
 		return stores[key]
 	end
-	
+
 	function StoreLazyLoader:Get(key)
-		return stores[key]
+		return stores[tostring(key)]
 	end
 
 	function StoreLazyLoader:Remove(key)
-		stores[key] = nil
+		stores[tostring(key)] = nil
 	end
-	
-	function StoreLazyLoader:RemoveAll(key)
+
+	function StoreLazyLoader:RemoveAll()
 		stores = {}
 	end
+
+	function StoreLazyLoader:GetAllCopy()
+		return deepCopy(stores)
+	end
 end
-initLazyLoader();
+StoreLazyLoader:init();
+
+local function CopyTable(t)
+	local success, result = pcall(function()
+		return HttpService:JSONDecode(HttpService:JSONEncode(t))
+	end)
+	if not success then
+		warn("Failed to deep copy table: " .. tostring(result))
+		return nil  -- Return nil if the copy fails
+	end
+	return result
+end
 
 -- DataStoreServiceLite (DSSLite)
 local function DSSLite()
@@ -35,19 +65,9 @@ local function DSSLite()
 	local DataStore = nil
 	local cache = nil
 	local entryKey = nil
+	dsmod.lru = _lru.new()
 
-	function dsmod.CopyTable(t)
-		local success, result = pcall(function()
-			return HttpService:JSONDecode(HttpService:JSONEncode(t))
-		end)
-		if not success then
-			warn("Failed to deep copy table: " .. tostring(result))
-			return nil  -- Return nil if the copy fails
-		end
-		return result
-	end
-
-	function dsmod.InitStore(key)
+	function dsmod:InitStore(key)
 		print("Initializing store: " .. key)
 		if not DataStore then
 			DataStore = StoreLazyLoader:Add(key);
@@ -57,16 +77,16 @@ local function DSSLite()
 		return false
 	end
 	
-	function dsmod.SetStore(datastore) -- does not use lazyloader
+	function dsmod:SetStore(datastore) -- does not use lazyloader
 		DataStore = datastore;
 		return;
 	end
 
-	function dsmod.GetStore()
+	function dsmod:GetStore()
 		return DataStore
 	end
 
-	function dsmod.ReleaseStore()
+	function dsmod:ReleaseStore()
 		if DataStore then
 			DataStore = nil
 			return true
@@ -76,7 +96,7 @@ local function DSSLite()
 	end
 
 	-------------------------------------------------------
-	function dsmod.GetData(key)
+	function dsmod:GetData(key)
 		local success, result = pcall(function()
 			return DataStore:GetAsync(key)
 		end)
@@ -92,19 +112,19 @@ local function DSSLite()
 			return cache
 		end
 		-- If it is a table, perform a deep copy
-		return self.CopyTable(cache)
+		return CopyTable(cache)
 	end
 
-	function dsmod.LoadIntoCache(key)
-		print("loading data into cache")
+	function dsmod:LoadIntoCache(key)
+		print("loading key into cache: " .. tostring(key))
 		entryKey = key
 		local success = nil;
 		success, cache = dsmod.GetData(key)
-		print("did system load cache: " .. tostring(success))
+		print("did system load cache value: " .. tostring(success))
 		return success;
 	end
 
-	function dsmod.SaveData(key, data)
+	function dsmod:SaveData(key, data)
 		local success, result = pcall(function()
 			DataStore:SetAsync(key, data)
 		end)
@@ -114,18 +134,18 @@ local function DSSLite()
 		return success, result 
 	end
 
-	function dsmod.ReleaseCache()
+	function dsmod:ReleaseCache()
 		cache = nil
 		entryKey = nil
 		return true
 	end
 
 	function dsmod:SaveCache()
-		return self:SaveData(entryKey, cache)
+		return self.SaveData(entryKey, cache)
 	end
 	
 	function dsmod:SaveCacheToEntry(key)
-		return self:SaveData(key, cache)
+		return self.SaveData(key, cache)
 	end
 
 	function dsmod:SaveAndReleaseCache()
@@ -139,7 +159,7 @@ local function DSSLite()
 	end
 	-------------------------------------------------------------
 
-	function dsmod.UpdateCache(newData, ...) -- variadic args are any number of nested keys
+	function dsmod:UpdateCache(newData, ...) -- variadic args are any number of nested keys
 		-- If cache is not a table, directly update it
 		if type(cache) ~= "table" then
 			cache = newData
@@ -173,8 +193,19 @@ local function DSSLite()
 	
 	-------------------------------------------------------------
 
-	function dsmod.GetCachedStore(key)
+	function dsmod:GetCachedStore(key)
 		return StoreLazyLoader:Get(key)
+	end
+	
+	function dsmod:LazyLoadStore(key)
+		if not StoreLazyLoader:Get(key) then
+			self:InitStore(key)
+		end
+		return StoreLazyLoader:Get(key)
+	end
+	
+	function dsmod:GetCachedStores(key)
+		return StoreLazyLoader:GetAllCopy()
 	end
 
 	return dsmod
