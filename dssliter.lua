@@ -1,6 +1,6 @@
 local HttpService = game:GetService("HttpService")
 local DataStoreService = game:GetService("DataStoreService")
-local _lru = require(script.Parent:WaitForChild("_lru"))
+--local _lru = require(script.Parent:WaitForChild("_lru"))
 
 -- Helper function to recursively deep copy a table
 local function deepCopy(original)
@@ -65,7 +65,7 @@ local function DSSLite()
 	local DataStore = nil
 	local cache = nil
 	local entryKey = nil
-	dsmod.lru = _lru.new()
+	--dsmod.lru = _lru.new()
 
 	function dsmod:InitStore(key)
 		print("Initializing store: " .. key)
