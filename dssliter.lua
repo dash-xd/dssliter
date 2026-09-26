@@ -65,7 +65,6 @@ local function DSSLite()
 	local DataStore = nil
 	local cache = nil
 	local entryKey = nil
-	--dsmod.lru = _lru.new()
 
 	function dsmod:InitStore(key)
 		print("Initializing store: " .. key)
