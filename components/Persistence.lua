@@ -22,6 +22,5 @@ function Persistence:SaveData(key, data)
 	return success, result
 end
 
-Persistence.Components.Persistence = Persistence
 
 return Persistence
