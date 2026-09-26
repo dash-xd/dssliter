@@ -31,6 +31,5 @@ function Store:ReleaseStore()
 	return false
 end
 
-Store.Components.Store = Store
 
 return Store
