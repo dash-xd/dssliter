@@ -1,10 +1,9 @@
-local ComponentModule = require(script.Parent.component)
-local Components = ComponentModule.Components
+local Store = require(script.Parent.components.Store)
+require(script.Parent.components.LazyStores)
+require(script.Parent.components.Persistence)
+require(script.Parent.components.Cache)
 
-Components.Store = require(script.Parent.components.Store)
-Components.LazyStores = require(script.Parent.components.LazyStores)
-Components.Persistence = require(script.Parent.components.Persistence)
-Components.Cache = require(script.Parent.components.Cache)
+local Components = Store.Components
 
 local function DSSLite()
 	return Components:Apply{
