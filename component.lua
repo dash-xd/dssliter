@@ -74,4 +74,4 @@ local Components = setmetatable({}, {
 	end,
 })
 
-return Components, Component
+return {\n\tComponents = Components,\n\tComponent = Component,\n}
