@@ -1,18 +1,28 @@
--- Vendored from dash-xd/lua-simple-components @ 738f9e3c4fed5a45e2b63ce9cfa53bc3b07dfa75
+-- Vendored from dash-xd/lua-simple-components @ b277ce97283df21f4f738dff0b27d45a7fff23a3
 -- Components.lua
 -------------------------------------------------------------------------------------------
 -- COMPONENTS
 -------------------------------------------------------------------------------------------
-local componentInstances = setmetatable({}, { __mode = "k" })
+local Components
+local Component
 
-local function Component()
-	local component = {}
-	componentInstances[component] = true
-	return component
+local ComponentMeta = {
+	__index = function(_, key)
+		if key == "Components" then
+			return Components
+	end
+	if key == "Component" then
+			return Component
+	end
+end,
+}
+
+Component = function()
+	return setmetatable({}, ComponentMeta)
 end
 
 local function isComponent(value)
-	return componentInstances[value] == true
+	return getmetatable(value) == ComponentMeta
 end
 
 -------------------------------------------------------------------------------------------
@@ -56,7 +66,7 @@ function RegistryMethods:Apply(args)
 	return target
 end
 
-local Components = setmetatable({}, {
+Components = setmetatable({}, {
 	__index = function(_, key)
 		local method = RegistryMethods[key]
 		if method then
@@ -74,4 +84,7 @@ local Components = setmetatable({}, {
 	end,
 })
 
-return {\n\tComponents = Components,\n\tComponent = Component,\n}
+return {
+	Components = Components,
+	Component = Component,
+}
