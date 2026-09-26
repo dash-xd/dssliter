@@ -80,6 +80,5 @@ function Cache:UpdateCache(newData, ...)
 	return update(self._cache, newData, ...)
 end
 
-Cache.Components.Cache = Cache
 
 return Cache
