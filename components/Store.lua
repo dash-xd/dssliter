@@ -1,4 +1,6 @@
-local Component = require(script.Parent.Parent.component).Component
+local ComponentModule = require(script.Parent.Parent.component)
+local Components = ComponentModule.Components
+local Component = ComponentModule.Component
 
 local Store = Component()
 
@@ -29,4 +31,6 @@ function Store:ReleaseStore()
 	return false
 end
 
-return Store
+Components.Store = Store
+
+return ComponentModule
