@@ -1,4 +1,3 @@
-local DataStoreService = game:GetService("DataStoreService")
 local Component = require(script.Parent.Parent.component).Component
 
 local Store = Component()
