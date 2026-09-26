@@ -42,6 +42,5 @@ function LazyStores:GetCachedStores()
 	return deepCopy(stores)
 end
 
-LazyStores.Components.LazyStores = LazyStores
 
 return LazyStores
