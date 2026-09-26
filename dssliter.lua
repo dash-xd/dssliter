@@ -1,8 +1,7 @@
 local HttpService = game:GetService("HttpService")
 local DataStoreService = game:GetService("DataStoreService")
 
-local ComponentModule = require(script.Parent.component)
-local Components, Component = ComponentModule.Components, ComponentModule.Component
+local Components, Component = require(script.Parent.Components)
 
 local stores = {}
 
