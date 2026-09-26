@@ -1,23 +1,9 @@
-local Store = require(script.Parent.components.Store)
-require(script.Parent.components.LazyStores)
-require(script.Parent.components.Persistence)
-require(script.Parent.components.Cache)
-
-local Components = Store.Components
+local DSSLiteComponent = require(script.Parent.components)
 
 local function DSSLite()
-	return Components:Apply{
-		target = {
-			_dataStore = nil,
-			_cache = nil,
-			_entryKey = nil,
-		},
-		tags = {
-			"Store",
-			"LazyStores",
-			"Persistence",
-			"Cache",
-		},
+	return DSSLiteComponent.Components:Apply{
+		target = {},
+		tags = DSSLiteComponent.tags,
 	}
 end
 
